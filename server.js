@@ -11,7 +11,7 @@ const resend = new Resend(process.env.RESEND_API_KEY)
 
 // CORS configuration
 const corsOptions = {
-  origin: ['https://ubique-bs.com', 'http://localhost:3000'],
+  origin: ['https://ubique-bs.com', 'http://localhost:8080'],
   methods: ['POST', 'GET', 'OPTIONS'],
   allowedHeaders: ['Content-Type'],
   credentials: true,
@@ -20,11 +20,11 @@ const corsOptions = {
 // Middleware
 app.use(cors(corsOptions))
 app.use(express.json())
-app.use(express.static('.'))
 
 // Logging middleware
 app.use((req, res, next) => {
   console.log(`${new Date().toISOString()} - ${req.method} ${req.url}`)
+  console.log('Request body:', req.body)
   next()
 })
 
@@ -106,6 +106,11 @@ app.post('/api/demo', async (req, res) => {
       details: error.message,
     })
   }
+})
+
+// Health check endpoint
+app.get('/health', (req, res) => {
+  res.json({ status: 'ok' })
 })
 
 // Error handling middleware
