@@ -17,6 +17,7 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 
   function showError(form, message) {
+    console.error('Form error:', message)
     const errorDiv = form.closest('.form-block').querySelector('.error-message')
     const errorText = errorDiv.querySelector('.text-block')
     errorText.textContent = message
@@ -30,6 +31,7 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 
   function showSuccess(form) {
+    console.log('Form submitted successfully')
     const successDiv = form
       .closest('.form-block')
       .querySelector('.success-message')
@@ -45,9 +47,12 @@ document.addEventListener('DOMContentLoaded', function () {
     event.preventDefault()
     const form = event.target
 
+    console.log('Form submission started')
+
     // Get form fields
     const formData = new FormData(form)
     const data = Object.fromEntries(formData.entries())
+    console.log('Form data:', data)
 
     // Validate required fields
     if (!validateRequired(data.Name || data['req-Name-2'])) {
@@ -75,26 +80,42 @@ document.addEventListener('DOMContentLoaded', function () {
 
       // Determine which endpoint to use based on the form
       const endpoint = form === demoForm ? '/api/demo' : '/api/contact'
+      console.log('Sending to endpoint:', endpoint)
+
+      // Get the server URL based on environment
+      const serverUrl =
+        window.location.hostname === 'localhost'
+          ? 'http://localhost:3000'
+          : 'https://ubique-bs.com'
 
       // Send the data to our server
-      const response = await fetch(endpoint, {
+      console.log('Sending request to:', `${serverUrl}${endpoint}`)
+      const response = await fetch(`${serverUrl}${endpoint}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
+        credentials: 'include',
         body: JSON.stringify(data),
       })
 
+      console.log('Response status:', response.status)
+      const responseData = await response.json()
+      console.log('Response data:', responseData)
+
       if (!response.ok) {
-        throw new Error('Network response was not ok')
+        throw new Error(responseData.details || 'Network response was not ok')
       }
 
       // Show success message and reset form
       showSuccess(form)
       form.reset()
     } catch (error) {
-      showError(form, 'Something went wrong. Please try again.')
       console.error('Form submission error:', error)
+      showError(
+        form,
+        error.message || 'Something went wrong. Please try again.'
+      )
     } finally {
       // Re-enable submit button and restore original text
       const submitButton = form.querySelector('input[type="submit"]')
@@ -106,8 +127,10 @@ document.addEventListener('DOMContentLoaded', function () {
   // Add submit event listeners to both forms
   if (contactForm) {
     contactForm.addEventListener('submit', handleSubmit)
+    console.log('Contact form handler attached')
   }
   if (demoForm) {
     demoForm.addEventListener('submit', handleSubmit)
+    console.log('Demo form handler attached')
   }
 })
