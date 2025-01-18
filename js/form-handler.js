@@ -107,7 +107,7 @@
       const endpoint = isDemoForm ? '/api/demo' : '/api/contact'
       const serverUrl =
         window.location.hostname === 'localhost'
-          ? 'http://localhost:3000'
+          ? 'http://localhost:8080'
           : 'https://ubique-bs.com'
 
       console.log('Submitting to:', `${serverUrl}${endpoint}`)
