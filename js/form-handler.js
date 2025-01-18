@@ -110,7 +110,7 @@
       const serverUrl =
         window.location.hostname === 'localhost'
           ? 'http://localhost:3000' // Your local backend server
-          : 'https://api.ubique-bs.com' // Your production API server
+          : 'https://ubique-bs.com' // Your production API server
 
       console.log('Environment:', window.location.hostname)
       console.log('Submitting to:', `${serverUrl}${endpoint}`)
