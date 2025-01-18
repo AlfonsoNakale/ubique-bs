@@ -6,6 +6,23 @@ document.addEventListener('DOMContentLoaded', function () {
     '.form-block.request #wf-form-Contact-Form'
   )
 
+  // Disable Webflow's form handling
+  window.Webflow && window.Webflow.destroy()
+
+  // Function to initialize forms
+  function initForm(form) {
+    if (!form) return
+
+    // Remove Webflow's form listeners
+    const clone = form.cloneNode(true)
+    form.parentNode.replaceChild(clone, form)
+
+    // Add our own submit handler
+    clone.addEventListener('submit', handleSubmit)
+    console.log('Form handler attached to:', clone.getAttribute('data-name'))
+    return clone
+  }
+
   // Validation functions
   function validateEmail(email) {
     const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
@@ -45,9 +62,10 @@ document.addEventListener('DOMContentLoaded', function () {
   // Handle form submission
   async function handleSubmit(event) {
     event.preventDefault()
-    const form = event.target
+    event.stopPropagation()
 
-    console.log('Form submission started')
+    console.log('Custom form handler intercepted submission')
+    const form = event.target
 
     // Get form fields
     const formData = new FormData(form)
@@ -66,7 +84,10 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     // Additional validation for demo form
-    if (form === demoForm && !validateRequired(data['req-Company-Name-2'])) {
+    if (
+      form.closest('.form-block.request') &&
+      !validateRequired(data['req-Company-Name-2'])
+    ) {
       showError(form, 'Please enter your company name')
       return
     }
@@ -79,7 +100,9 @@ document.addEventListener('DOMContentLoaded', function () {
       submitButton.disabled = true
 
       // Determine which endpoint to use based on the form
-      const endpoint = form === demoForm ? '/api/demo' : '/api/contact'
+      const endpoint = form.closest('.form-block.request')
+        ? '/api/demo'
+        : '/api/contact'
       console.log('Sending to endpoint:', endpoint)
 
       // Get the server URL based on environment
@@ -124,13 +147,17 @@ document.addEventListener('DOMContentLoaded', function () {
     }
   }
 
-  // Add submit event listeners to both forms
-  if (contactForm) {
-    contactForm.addEventListener('submit', handleSubmit)
-    console.log('Contact form handler attached')
-  }
-  if (demoForm) {
-    demoForm.addEventListener('submit', handleSubmit)
-    console.log('Demo form handler attached')
-  }
+  // Initialize both forms
+  const initializedContactForm = initForm(contactForm)
+  const initializedDemoForm = initForm(demoForm)
+
+  // Re-initialize forms when Webflow's page interactions occur
+  document.addEventListener('DOMContentLoaded', function () {
+    setTimeout(() => {
+      initForm(document.querySelector('#wf-form-Contact-Form'))
+      initForm(
+        document.querySelector('.form-block.request #wf-form-Contact-Form')
+      )
+    }, 500)
+  })
 })
