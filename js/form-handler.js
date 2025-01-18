@@ -108,7 +108,7 @@
       const serverUrl =
         window.location.hostname === 'localhost'
           ? 'http://localhost:8080'
-          : 'https://ubique-bs.com'
+          : 'https://ubique-bs.com/contact'
 
       console.log('Submitting to:', `${serverUrl}${endpoint}`)
 
