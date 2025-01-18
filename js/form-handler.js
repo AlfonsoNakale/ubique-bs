@@ -1,96 +1,113 @@
 // Form validation and submission handler
-document.addEventListener('DOMContentLoaded', function() {
-    // Get both forms
-    const contactForm = document.querySelector('#wf-form-Contact-Form');
-    const demoForm = document.querySelector('.form-block.request #wf-form-Contact-Form');
+document.addEventListener('DOMContentLoaded', function () {
+  // Get both forms
+  const contactForm = document.querySelector('#wf-form-Contact-Form')
+  const demoForm = document.querySelector(
+    '.form-block.request #wf-form-Contact-Form'
+  )
 
-    // Validation functions
-    function validateEmail(email) {
-        const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        return re.test(email.toLowerCase());
+  // Validation functions
+  function validateEmail(email) {
+    const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    return re.test(email.toLowerCase())
+  }
+
+  function validateRequired(value) {
+    return value.trim() !== ''
+  }
+
+  function showError(form, message) {
+    const errorDiv = form.closest('.form-block').querySelector('.error-message')
+    const errorText = errorDiv.querySelector('.text-block')
+    errorText.textContent = message
+    errorDiv.style.display = 'block'
+
+    // Hide success message if visible
+    const successDiv = form
+      .closest('.form-block')
+      .querySelector('.success-message')
+    successDiv.style.display = 'none'
+  }
+
+  function showSuccess(form) {
+    const successDiv = form
+      .closest('.form-block')
+      .querySelector('.success-message')
+    successDiv.style.display = 'block'
+
+    // Hide error message if visible
+    const errorDiv = form.closest('.form-block').querySelector('.error-message')
+    errorDiv.style.display = 'none'
+  }
+
+  // Handle form submission
+  async function handleSubmit(event) {
+    event.preventDefault()
+    const form = event.target
+
+    // Get form fields
+    const formData = new FormData(form)
+    const data = Object.fromEntries(formData.entries())
+
+    // Validate required fields
+    if (!validateRequired(data.Name || data['req-Name-2'])) {
+      showError(form, 'Please enter your name')
+      return
     }
 
-    function validateRequired(value) {
-        return value.trim() !== '';
+    if (!validateEmail(data.Email || data['req-Email-2'])) {
+      showError(form, 'Please enter a valid email address')
+      return
     }
 
-    function showError(form, message) {
-        const errorDiv = form.closest('.form-block').querySelector('.error-message');
-        const errorText = errorDiv.querySelector('.text-block');
-        errorText.textContent = message;
-        errorDiv.style.display = 'block';
-        
-        // Hide success message if visible
-        const successDiv = form.closest('.form-block').querySelector('.success-message');
-        successDiv.style.display = 'none';
+    // Additional validation for demo form
+    if (form === demoForm && !validateRequired(data['req-Company-Name-2'])) {
+      showError(form, 'Please enter your company name')
+      return
     }
 
-    function showSuccess(form) {
-        const successDiv = form.closest('.form-block').querySelector('.success-message');
-        successDiv.style.display = 'block';
-        
-        // Hide error message if visible
-        const errorDiv = form.closest('.form-block').querySelector('.error-message');
-        errorDiv.style.display = 'none';
-    }
+    try {
+      // Disable submit button and show loading state
+      const submitButton = form.querySelector('input[type="submit"]')
+      const originalValue = submitButton.value
+      submitButton.value = 'Sending...'
+      submitButton.disabled = true
 
-    // Handle form submission
-    async function handleSubmit(event) {
-        event.preventDefault();
-        const form = event.target;
-        
-        // Get form fields
-        const formData = new FormData(form);
-        const data = Object.fromEntries(formData.entries());
-        
-        // Validate required fields
-        if (!validateRequired(data.Name || data['req-Name-2'])) {
-            showError(form, 'Please enter your name');
-            return;
-        }
-        
-        if (!validateEmail(data.Email || data['req-Email-2'])) {
-            showError(form, 'Please enter a valid email address');
-            return;
-        }
-        
-        // Additional validation for demo form
-        if (form === demoForm && !validateRequired(data['req-Company-Name-2'])) {
-            showError(form, 'Please enter your company name');
-            return;
-        }
+      // Determine which endpoint to use based on the form
+      const endpoint = form === demoForm ? '/api/demo' : '/api/contact'
 
-        try {
-            // Disable submit button and show loading state
-            const submitButton = form.querySelector('input[type="submit"]');
-            const originalValue = submitButton.value;
-            submitButton.value = 'Sending...';
-            submitButton.disabled = true;
+      // Send the data to our server
+      const response = await fetch(endpoint, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+      })
 
-            // Here you would typically send the data to your backend
-            // For demonstration, we'll simulate an API call
-            await new Promise(resolve => setTimeout(resolve, 1000));
-            
-            // Show success message and reset form
-            showSuccess(form);
-            form.reset();
-            
-        } catch (error) {
-            showError(form, 'Something went wrong. Please try again.');
-            console.error('Form submission error:', error);
-        } finally {
-            // Re-enable submit button and restore original text
-            const submitButton = form.querySelector('input[type="submit"]');
-            submitButton.value = originalValue;
-            submitButton.disabled = false;
-        }
-    }
+      if (!response.ok) {
+        throw new Error('Network response was not ok')
+      }
 
-    // Add submit event listeners to both forms
-    if (contactForm) {
-        contactForm.addEventListener('submit', handleSubmit);
+      // Show success message and reset form
+      showSuccess(form)
+      form.reset()
+    } catch (error) {
+      showError(form, 'Something went wrong. Please try again.')
+      console.error('Form submission error:', error)
+    } finally {
+      // Re-enable submit button and restore original text
+      const submitButton = form.querySelector('input[type="submit"]')
+      submitButton.value = originalValue
+      submitButton.disabled = false
     }
-    if (demoForm) {
-        demoForm.addEventListener('submit', handleSubmit);
-    }
-}); 
+  }
+
+  // Add submit event listeners to both forms
+  if (contactForm) {
+    contactForm.addEventListener('submit', handleSubmit)
+  }
+  if (demoForm) {
+    demoForm.addEventListener('submit', handleSubmit)
+  }
+})
