@@ -106,11 +106,11 @@
       // Determine endpoint
       const endpoint = isDemoForm ? '/api/demo' : '/api/contact'
 
-      // Use the correct server URL based on environment
+      // Use your API hosting service URL
       const serverUrl =
         window.location.hostname === 'localhost'
-          ? 'http://localhost:3000' // Your local backend server
-          : 'https://ubique-bs.com' // Your production API server
+          ? 'http://localhost:3000'
+          : 'https://ubique-bs-api.onrender.com' // Replace with your actual API hosting URL
 
       console.log('Environment:', window.location.hostname)
       console.log('Submitting to:', `${serverUrl}${endpoint}`)
@@ -120,6 +120,7 @@
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          Origin: window.location.origin,
         },
         body: JSON.stringify(data),
       })

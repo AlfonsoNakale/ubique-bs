@@ -18,17 +18,26 @@ const corsOptions = {
     'http://localhost:3000',
   ],
   methods: ['POST', 'GET', 'OPTIONS'],
-  allowedHeaders: ['Content-Type'],
-  credentials: true,
+  allowedHeaders: ['Content-Type', 'Origin'],
+  maxAge: 86400, // 24 hours
+  credentials: false,
 }
 
 // Middleware
 app.use(cors(corsOptions))
 app.use(express.json())
 
-// Logging middleware
+// Additional security middleware
 app.use((req, res, next) => {
+  // Verify origin
+  const origin = req.headers.origin
+  if (!corsOptions.origin.includes(origin) && origin !== undefined) {
+    return res.status(403).json({ error: 'Origin not allowed' })
+  }
+
+  // Log request details
   console.log(`${new Date().toISOString()} - ${req.method} ${req.url}`)
+  console.log('Origin:', req.headers.origin)
   console.log('Request body:', req.body)
   next()
 })
