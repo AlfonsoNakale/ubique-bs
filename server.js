@@ -4,19 +4,14 @@ const cors = require('cors')
 const { Resend } = require('resend')
 
 const app = express()
-const port = process.env.PORT || 3000
+const port = process.env.PORT || 8080
 
 // Initialize Resend with your API key
 const resend = new Resend(process.env.RESEND_API_KEY)
 
 // CORS configuration
 const corsOptions = {
-  origin: [
-    'https://ubique-bs.com',
-    'https://www.ubique-bs.com',
-    'http://localhost:8080',
-    'http://localhost:3000',
-  ],
+  origin: ['https://ubique-bs.com', 'http://localhost:8080'],
   methods: ['POST', 'GET', 'OPTIONS'],
   allowedHeaders: ['Content-Type'],
   credentials: true,
