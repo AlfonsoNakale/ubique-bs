@@ -16,9 +16,13 @@ const corsOptions = {
     'https://www.ubique-bs.com',
     'http://localhost:8080',
   ],
-  methods: ['POST', 'GET', 'OPTIONS'],
-  allowedHeaders: ['Content-Type'],
+  methods: ['POST', 'GET', 'OPTIONS', 'HEAD'],
+  allowedHeaders: ['Content-Type', 'Accept', 'Origin'],
+  exposedHeaders: ['Content-Type'],
   credentials: true,
+  maxAge: 86400, // 24 hours
+  preflightContinue: false,
+  optionsSuccessStatus: 204,
 }
 
 // Middleware
@@ -27,8 +31,12 @@ app.use(express.json())
 
 // Logging middleware
 app.use((req, res, next) => {
+  console.log('--------------------')
   console.log(`${new Date().toISOString()} - ${req.method} ${req.url}`)
-  console.log('Request body:', req.body)
+  console.log('Headers:', req.headers)
+  console.log('Body:', req.body)
+  console.log('Origin:', req.get('origin'))
+  console.log('--------------------')
   next()
 })
 
@@ -38,6 +46,13 @@ app.post('/api/contact', async (req, res) => {
 
   try {
     const { Name, Email, Message } = req.body
+
+    if (!Name || !Email) {
+      return res.status(400).json({
+        error: 'Missing required fields',
+        details: 'Name and Email are required',
+      })
+    }
 
     console.log('Sending email with data:', { Name, Email, Message })
 

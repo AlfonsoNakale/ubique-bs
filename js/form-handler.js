@@ -107,12 +107,9 @@
       const endpoint = isDemoForm ? '/api/demo' : '/api/contact'
 
       // Use the correct server URL based on environment
-      const serverUrl =
-        window.location.hostname === 'localhost'
-          ? 'http://localhost:3000'
-          : 'https://ubique-bs.com'
+      const serverUrl = 'https://ubique-bs.com' // Always use production URL
 
-      console.log('Environment:', window.location.hostname)
+      console.log('Form data being sent:', data)
       console.log('Submitting to:', `${serverUrl}${endpoint}`)
 
       // Send request
@@ -121,24 +118,25 @@
         headers: {
           'Content-Type': 'application/json',
           Accept: 'application/json',
+          Origin: window.location.origin,
         },
+        credentials: 'include',
         body: JSON.stringify(data),
       })
 
+      console.log('Response status:', response.status)
+      console.log(
+        'Response headers:',
+        Object.fromEntries(response.headers.entries())
+      )
+
       let responseData
-      const contentType = response.headers.get('content-type')
-      if (contentType && contentType.includes('application/json')) {
+      try {
         responseData = await response.json()
-      } else {
-        throw new Error('Invalid response format from server')
-      }
-
-      console.log('Response:', responseData)
-
-      if (!response.ok) {
-        throw new Error(
-          responseData.details || responseData.error || 'Submission failed'
-        )
+        console.log('Response data:', responseData)
+      } catch (jsonError) {
+        console.error('JSON parsing error:', jsonError)
+        throw new Error('Server response was not in JSON format')
       }
 
       // Show success and reset
