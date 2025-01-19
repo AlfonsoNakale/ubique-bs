@@ -112,15 +112,13 @@
       console.log('Form data being sent:', data)
       console.log('Submitting to:', `${serverUrl}${endpoint}`)
 
-      // Send request // Test contact form
+      // Send request
       const response = await fetch(`${serverUrl}${endpoint}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           Accept: 'application/json',
-          Origin: window.location.origin,
         },
-        credentials: 'include',
         body: JSON.stringify(data),
       })
 
@@ -130,13 +128,24 @@
         Object.fromEntries(response.headers.entries())
       )
 
+      // First check if the response is ok
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`)
+      }
+
+      // Then try to parse JSON
       let responseData
       try {
-        responseData = await response.json()
-        console.log('Response data:', responseData)
+        const text = await response.text()
+        console.log('Raw response:', text)
+        responseData = text ? JSON.parse(text) : {}
       } catch (jsonError) {
         console.error('JSON parsing error:', jsonError)
-        throw new Error('Server response was not in JSON format')
+        throw new Error('Server response was not in valid JSON format')
+      }
+
+      if (responseData.error) {
+        throw new Error(responseData.error)
       }
 
       // Show success and reset
