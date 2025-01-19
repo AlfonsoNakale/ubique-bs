@@ -109,8 +109,8 @@
       // Use the correct server URL based on environment
       const serverUrl =
         window.location.hostname === 'localhost'
-          ? 'http://localhost:3000' // Your local backend server
-          : 'https://ubique-bs.com' // Your production API server
+          ? 'http://localhost:3000'
+          : 'https://ubique-bs.com'
 
       console.log('Environment:', window.location.hostname)
       console.log('Submitting to:', `${serverUrl}${endpoint}`)
@@ -120,20 +120,36 @@
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          Accept: 'application/json',
         },
         body: JSON.stringify(data),
       })
 
-      const responseData = await response.json()
+      let responseData
+      const contentType = response.headers.get('content-type')
+      if (contentType && contentType.includes('application/json')) {
+        responseData = await response.json()
+      } else {
+        throw new Error('Invalid response format from server')
+      }
+
       console.log('Response:', responseData)
 
       if (!response.ok) {
-        throw new Error(responseData.details || 'Submission failed')
+        throw new Error(
+          responseData.details || responseData.error || 'Submission failed'
+        )
       }
 
       // Show success and reset
       showSuccess(form)
       form.reset()
+    } catch (error) {
+      console.error('Form submission error:', error)
+      showError(
+        form,
+        error.message || 'Something went wrong. Please try again.'
+      )
     } finally {
       // Restore button state
       submitButton.value = originalValue

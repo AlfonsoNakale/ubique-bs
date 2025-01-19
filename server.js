@@ -11,7 +11,11 @@ const resend = new Resend(process.env.RESEND_API_KEY)
 
 // CORS configuration
 const corsOptions = {
-  origin: ['https://ubique-bs.com', 'http://localhost:8080'],
+  origin: [
+    'https://ubique-bs.com',
+    'https://www.ubique-bs.com',
+    'http://localhost:8080',
+  ],
   methods: ['POST', 'GET', 'OPTIONS'],
   allowedHeaders: ['Content-Type'],
   credentials: true,
