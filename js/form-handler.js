@@ -116,8 +116,8 @@
       const response = await fetch(`${serverUrl}${endpoint}`, {
         method: 'POST',
         headers: {
-          'Content-Type': 'text/html',
-          Accept: 'text/html',
+          'Content-Type': 'application/json',
+          Accept: 'application/json',
           Origin: window.location.origin,
         },
         credentials: 'include',
