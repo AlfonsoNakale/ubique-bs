@@ -55,63 +55,69 @@
     // Determine form type
     const isDemoForm = form.closest('.form-block.request') !== null
 
+    // Get submit button reference
+    const submitButton = form.querySelector('input[type="submit"]')
+    const originalValue = submitButton.value
+
     // Validate form
     if (!validateForm(form, data, isDemoForm)) {
       return
     }
 
+    // Update button state
+    submitButton.value = 'Sending...'
+    submitButton.disabled = true
+
     try {
+      // Send the form data
       await submitForm(form, data, isDemoForm)
+
+      // Show success and reset form
+      showSuccess(form)
+      form.reset()
     } catch (error) {
       console.error('Submission error:', error)
       showError(
         form,
         error.message || 'Something went wrong. Please try again.'
       )
+    } finally {
+      // Always restore button state
+      submitButton.value = originalValue
+      submitButton.disabled = false
     }
   }
 
   async function submitForm(form, data, isDemoForm) {
-    // Update UI
-    const submitButton = form.querySelector('input[type="submit"]')
-    const originalValue = submitButton.value
-    submitButton.value = 'Sending...'
-    submitButton.disabled = true
+    // Determine endpoint
+    const endpoint = isDemoForm ? '/api/demo' : '/api/contact'
 
-    try {
-      // Determine endpoint
-      const endpoint = isDemoForm ? '/api/demo' : '/api/contact'
+    // Get base URL - use your deployed API URL
+    const serverUrl =
+      window.location.hostname === 'localhost'
+        ? 'http://localhost:8080'
+        : 'https://ubique-bs.com'
 
-      // Get base URL - use your deployed API URL
-      const serverUrl = 'https://ubique-bs.com' // Change this to your actual API URL
+    console.log('Environment:', window.location.hostname)
+    console.log('Submitting to:', `${serverUrl}${endpoint}`)
 
-      console.log('Environment:', window.location.hostname)
-      console.log('Submitting to:', `${serverUrl}${endpoint}`)
+    // Send request
+    const response = await fetch(`${serverUrl}${endpoint}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data),
+    })
 
-      // Send request
-      const response = await fetch(`${serverUrl}${endpoint}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(data),
-      })
+    const responseData = await response.json()
+    console.log('Response:', responseData)
 
-      const responseData = await response.json()
-      console.log('Response:', responseData)
-
-      if (!response.ok) {
-        throw new Error(responseData.details || 'Submission failed')
-      }
-
-      // Show success and reset
-      showSuccess(form)
-      form.reset()
-    } finally {
-      // Restore button state
-      submitButton.value = originalValue
-      submitButton.disabled = false
+    if (!response.ok) {
+      throw new Error(responseData.details || 'Submission failed')
     }
+
+    return responseData
   }
 
   function validateForm(form, data, isDemoForm) {
