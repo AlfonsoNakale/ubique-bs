@@ -1,23 +1,23 @@
 // Form validation and submission handler
 ;(function () {
-  // Wait for Webflow to initialize
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initializeForms)
-  } else {
-    initializeForms()
-  }
-
-  function initializeForms() {
-    // Make sure Webflow is loaded
-    if (window.Webflow) {
-      window.Webflow.destroy()
-      window.Webflow.ready()
-      window.Webflow.require('ix2').init()
+  // Wait for both DOM and Webflow
+  function ready(callback) {
+    if (document.readyState !== 'loading') {
+      callback()
+    } else {
+      document.addEventListener('DOMContentLoaded', callback)
     }
-
-    // Initialize forms after a short delay to ensure Webflow's forms are fully loaded
-    setTimeout(setupForms, 100)
   }
+
+  // Initialize when everything is ready
+  ready(() => {
+    // Wait for Webflow to be ready
+    window.Webflow &&
+      window.Webflow.push(() => {
+        console.log('Webflow ready, initializing forms...')
+        setupForms()
+      })
+  })
 
   function setupForms() {
     // Find all forms
@@ -25,25 +25,25 @@
     console.log('Found forms:', forms.length)
 
     forms.forEach((form) => {
-      // Remove existing listeners and clone
-      const newForm = form.cloneNode(true)
-      form.parentNode.replaceChild(newForm, form)
+      // Instead of cloning, just add our handler
+      form.addEventListener(
+        'submit',
+        function (event) {
+          // Prevent Webflow's default handling
+          event.preventDefault()
+          event.stopPropagation()
 
-      // Add our custom handler
-      newForm.addEventListener('submit', handleSubmit)
+          // Call our custom handler
+          handleSubmit(event)
+        },
+        true
+      ) // Use capture phase to ensure we handle before Webflow
 
-      // Disable Webflow's form behavior
-      newForm.setAttribute('data-wf-page', '')
-      newForm.setAttribute('data-wf-element-id', '')
-
-      console.log('Initialized form:', newForm.getAttribute('data-name'))
+      console.log('Initialized form:', form.getAttribute('data-name'))
     })
   }
 
   async function handleSubmit(event) {
-    event.preventDefault()
-    event.stopPropagation()
-
     const form = event.target
     console.log('Form submission intercepted:', form.getAttribute('data-name'))
 
@@ -71,30 +71,6 @@
     }
   }
 
-  function validateForm(form, data, isDemoForm) {
-    // Validate name
-    const name = data.Name || data['req-Name-2']
-    if (!validateRequired(name)) {
-      showError(form, 'Please enter your name')
-      return false
-    }
-
-    // Validate email
-    const email = data.Email || data['req-Email-2']
-    if (!validateEmail(email)) {
-      showError(form, 'Please enter a valid email address')
-      return false
-    }
-
-    // Validate company name for demo form
-    if (isDemoForm && !validateRequired(data['req-Company-Name-2'])) {
-      showError(form, 'Please enter your company name')
-      return false
-    }
-
-    return true
-  }
-
   async function submitForm(form, data, isDemoForm) {
     // Update UI
     const submitButton = form.querySelector('input[type="submit"]')
@@ -106,11 +82,8 @@
       // Determine endpoint
       const endpoint = isDemoForm ? '/api/demo' : '/api/contact'
 
-      // Use the correct server URL based on environment
-      const serverUrl =
-        window.location.hostname === 'localhost'
-          ? 'http://localhost:3000' // Your local backend server
-          : 'https://ubique-bs.com' // Your production API server
+      // Get base URL - use your deployed API URL
+      const serverUrl = 'https://api.ubique-bs.com' // Change this to your actual API URL
 
       console.log('Environment:', window.location.hostname)
       console.log('Submitting to:', `${serverUrl}${endpoint}`)
@@ -139,6 +112,30 @@
       submitButton.value = originalValue
       submitButton.disabled = false
     }
+  }
+
+  function validateForm(form, data, isDemoForm) {
+    // Validate name
+    const name = data.Name || data['req-Name-2']
+    if (!validateRequired(name)) {
+      showError(form, 'Please enter your name')
+      return false
+    }
+
+    // Validate email
+    const email = data.Email || data['req-Email-2']
+    if (!validateEmail(email)) {
+      showError(form, 'Please enter a valid email address')
+      return false
+    }
+
+    // Validate company name for demo form
+    if (isDemoForm && !validateRequired(data['req-Company-Name-2'])) {
+      showError(form, 'Please enter your company name')
+      return false
+    }
+
+    return true
   }
 
   function validateEmail(email) {
