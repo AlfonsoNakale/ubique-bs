@@ -83,7 +83,7 @@
       const endpoint = isDemoForm ? '/api/demo' : '/api/contact'
 
       // Get base URL - use your deployed API URL
-      const serverUrl = 'https://api.ubique-bs.com' // Change this to your actual API URL
+      const serverUrl = 'https://ubique-bs.com' // Change this to your actual API URL
 
       console.log('Environment:', window.location.hostname)
       console.log('Submitting to:', `${serverUrl}${endpoint}`)
