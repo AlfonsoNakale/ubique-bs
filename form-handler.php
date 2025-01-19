@@ -72,7 +72,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
   // If there are no validation errors, send email
   if (empty($response['errors'])) {
-    $toEmail = 'sales@ubique-bs.com'; // Replace with your actual email
+    $toEmail = 'alfonso.nakale@gmail.com'; // Replace with your actual email
     $headers = [
       'From' => $email,
       'Reply-To' => $email,
