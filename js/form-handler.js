@@ -117,7 +117,7 @@
 
       // Send request
       const response = await fetch(`${serverUrl}${endpoint}`, {
-        method: 'GET',
+        method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           Accept: 'application/json',
