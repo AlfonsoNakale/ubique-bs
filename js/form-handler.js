@@ -49,53 +49,7 @@
 
     // Get form data
     const formData = new FormData(form)
-    const data = Object.fromEntries(formData.entries())
-    console.log('Form data:', data)
 
-    // Determine form type
-    const isDemoForm = form.closest('.form-block.request') !== null
-
-    // Validate form
-    if (!validateForm(form, data, isDemoForm)) {
-      return
-    }
-
-    try {
-      await submitForm(form, data, isDemoForm)
-    } catch (error) {
-      console.error('Submission error:', error)
-      showError(
-        form,
-        error.message || 'Something went wrong. Please try again.'
-      )
-    }
-  }
-
-  function validateForm(form, data, isDemoForm) {
-    // Validate name
-    const name = data.Name || data['req-Name-2']
-    if (!validateRequired(name)) {
-      showError(form, 'Please enter your name')
-      return false
-    }
-
-    // Validate email
-    const email = data.Email || data['req-Email-2']
-    if (!validateEmail(email)) {
-      showError(form, 'Please enter a valid email address')
-      return false
-    }
-
-    // Validate company name for demo form
-    if (isDemoForm && !validateRequired(data['req-Company-Name-2'])) {
-      showError(form, 'Please enter your company name')
-      return false
-    }
-
-    return true
-  }
-
-  async function submitForm(form, data, isDemoForm) {
     // Update UI
     const submitButton = form.querySelector('input[type="submit"]')
     const originalValue = submitButton.value
@@ -103,74 +57,29 @@
     submitButton.disabled = true
 
     try {
-      // Determine endpoint
-      const endpoint = isDemoForm ? '/api/demo' : '/api/contact'
-
-      // Use the correct server URL based on environment
-      const serverUrl = 'https://ubique-bs.com' // Always use production URL
-
-      console.log('Form data being sent:', data)
-      console.log('Submitting to:', `${serverUrl}${endpoint}`)
-
-      // Send request
-      const response = await fetch(`${serverUrl}${endpoint}`, {
+      // Send request to PHP handler
+      const response = await fetch('form-handler.php', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Accept: 'application/json',
-        },
-        body: JSON.stringify(data),
+        body: formData,
       })
 
-      console.log('Response status:', response.status)
-      console.log(
-        'Response headers:',
-        Object.fromEntries(response.headers.entries())
-      )
+      const result = await response.json()
 
-      // First check if the response is ok
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`)
+      if (result.success) {
+        showSuccess(form)
+        form.reset()
+      } else {
+        const errorMessage = result.message + '\n' + result.errors.join('\n')
+        showError(form, errorMessage)
       }
-
-      // Then try to parse JSON
-      let responseData
-      try {
-        const text = await response.text()
-        console.log('Raw response:', text)
-        responseData = text ? JSON.parse(text) : {}
-      } catch (jsonError) {
-        console.error('JSON parsing error:', jsonError)
-        throw new Error('Server response was not in valid JSON format')
-      }
-
-      if (responseData.error) {
-        throw new Error(responseData.error)
-      }
-
-      // Show success and reset
-      showSuccess(form)
-      form.reset()
     } catch (error) {
       console.error('Form submission error:', error)
-      showError(
-        form,
-        error.message || 'Something went wrong. Please try again.'
-      )
+      showError(form, 'Something went wrong. Please try again.')
     } finally {
       // Restore button state
       submitButton.value = originalValue
       submitButton.disabled = false
     }
-  }
-
-  function validateEmail(email) {
-    const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-    return re.test(email.toLowerCase())
-  }
-
-  function validateRequired(value) {
-    return value && value.trim() !== ''
   }
 
   function showError(form, message) {
