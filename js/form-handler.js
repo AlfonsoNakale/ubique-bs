@@ -112,7 +112,7 @@
       console.log('Form data being sent:', data)
       console.log('Submitting to:', `${serverUrl}${endpoint}`)
 
-      // Send request
+      // Send request // Test contact form
       const response = await fetch(`${serverUrl}${endpoint}`, {
         method: 'POST',
         headers: {
